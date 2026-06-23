@@ -1,5 +1,10 @@
-import { toPng } from "html-to-image";
-import { jsPDF } from "jspdf";
+/**
+ * Exportación del dashboard como PNG/PDF.
+ *
+ * Las dependencias pesadas (html-to-image, jspdf) se cargan dinámicamente
+ * con import() para que NO entren al bundle inicial. Solo se descargan
+ * cuando el usuario hace clic en "Exportar" por primera vez.
+ */
 
 function todayStamp() {
   const d = new Date();
@@ -18,12 +23,13 @@ function sanitize(text) {
 }
 
 async function captureNode(node) {
+  const { toPng } = await import("html-to-image");
   const isDark = document.documentElement.classList.contains("dark");
   return toPng(node, {
     cacheBust: true,
     pixelRatio: 2,
     backgroundColor: isDark ? "#020617" : "#f8fafc",
-    skipFonts: true, // evita SecurityError al leer Google Fonts (cross-origin)
+    skipFonts: true,
     filter: (n) =>
       !(n instanceof HTMLElement && n.dataset?.exportIgnore === "true"),
   });
@@ -43,7 +49,12 @@ export async function exportAsPng(node, studentName) {
 }
 
 export async function exportAsPdf(node, studentName) {
-  const dataUrl = await captureNode(node);
+  // Cargamos jsPDF y html-to-image en paralelo solo cuando se necesita
+  const [{ jsPDF }, dataUrl] = await Promise.all([
+    import("jspdf"),
+    captureNode(node),
+  ]);
+
   const img = new Image();
   img.src = dataUrl;
   await new Promise((resolve, reject) => {

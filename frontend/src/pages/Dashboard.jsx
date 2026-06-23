@@ -1,11 +1,11 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 import ExportMenu from "../components/ExportMenu";
 import FiltersBar from "../components/FiltersBar";
 import GpaCalculator from "../components/GpaCalculator";
+import GraphSkeleton from "../components/GraphSkeleton";
 import HelpHint from "../components/HelpHint";
 import MobileGraphNotice from "../components/MobileGraphNotice";
 import PensumGrid from "../components/PensumGrid";
-import PrerequisitesGraph from "../components/PrerequisitesGraph";
 import ProgressBar from "../components/ProgressBar";
 import Recommender from "../components/Recommender";
 import SimulationBanner from "../components/SimulationBanner";
@@ -16,6 +16,11 @@ import WelcomeNotice from "../components/WelcomeNotice";
 import usePersistentState from "../hooks/usePersistentState";
 import { formatRelativeTime } from "../services/cache";
 import { buildSimulatedData } from "../services/simulation";
+
+// React Flow pesa ~200 KB. Solo se descarga si el usuario abre el grafo.
+const PrerequisitesGraph = lazy(() =>
+  import("../components/PrerequisitesGraph"),
+);
 
 function isAvailable(m) {
   return m.estado === "PENDIENTE" && m.puede_cursar;
@@ -271,10 +276,12 @@ export default function Dashboard({
             {view === "graph" && (
               <>
                 <MobileGraphNotice />
-                <PrerequisitesGraph
-                  materiasPorSemestre={materias_por_semestre}
-                  theme={theme}
-                />
+                <Suspense fallback={<GraphSkeleton />}>
+                  <PrerequisitesGraph
+                    materiasPorSemestre={materias_por_semestre}
+                    theme={theme}
+                  />
+                </Suspense>
               </>
             )}
           </section>
