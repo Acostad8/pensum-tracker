@@ -10,14 +10,14 @@ export default function FileDropzone({ label, file, onFileSelected }) {
   });
 
   const borderColor = isDragActive
-    ? "border-ufpso-500 bg-ufpso-50"
+    ? "border-ufpso-500 bg-ufpso-50 dark:bg-ufpso-900/30"
     : file
-    ? "border-state-approved bg-state-approvedBg/40"
-    : "border-slate-300 bg-white hover:border-ufpso-400 hover:bg-ufpso-50/40";
+    ? "border-state-approved bg-state-approvedBg/40 dark:bg-green-900/20"
+    : "border-slate-300 bg-white hover:border-ufpso-400 hover:bg-ufpso-50/40 dark:border-slate-700 dark:bg-slate-800/40 dark:hover:border-ufpso-600 dark:hover:bg-ufpso-900/20";
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-semibold text-slate-700">
+      <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
         {label}
       </label>
       <div
@@ -43,15 +43,17 @@ export default function FileDropzone({ label, file, onFileSelected }) {
               </svg>
             </div>
             <div className="text-left">
-              <p className="text-sm font-medium text-slate-800">{file.name}</p>
-              <p className="text-xs text-slate-500">
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                {file.name}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {(file.size / 1024).toFixed(0)} KB · clic para reemplazar
               </p>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-ufpso-100 text-ufpso-600">
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-ufpso-100 text-ufpso-600 dark:bg-ufpso-900/40 dark:text-ufpso-300">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5"
@@ -67,10 +69,12 @@ export default function FileDropzone({ label, file, onFileSelected }) {
                 />
               </svg>
             </div>
-            <p className="text-sm font-medium text-slate-700">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
               Arrastra el PDF aquí o haz clic
             </p>
-            <p className="mt-1 text-xs text-slate-500">Solo archivos .pdf</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Solo archivos .pdf
+            </p>
           </div>
         )}
       </div>

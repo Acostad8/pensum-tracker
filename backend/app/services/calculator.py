@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import math
 import re
+from difflib import SequenceMatcher
 from typing import Iterable
 
 from app.models.schemas import (
@@ -27,12 +28,68 @@ from app.models.schemas import (
 
 PAREN_HINT = re.compile(r"\(([^)]+)\)")
 ELECTIVA_RE = re.compile(r"electiva", re.IGNORECASE)
+HOMOLOGATION_SIMILARITY_THRESHOLD = 0.82
 
 
 def _normalize(text: str) -> str:
     """Quita tildes y baja a minúsculas para comparaciones flexibles."""
     replacements = str.maketrans("áéíóúÁÉÍÓÚñÑ", "aeiouAEIOUnN")
     return text.translate(replacements).lower().strip()
+
+
+def _clean_name(name: str) -> str:
+    """Normaliza un nombre de materia para comparación: quita tildes, paréntesis,
+    palabras de relleno comunes y espacios extra."""
+    name = PAREN_HINT.sub("", name)
+    name = _normalize(name)
+    name = re.sub(r"[^a-z0-9\s]", " ", name)
+    return " ".join(name.split())
+
+
+def _name_similarity(a: str, b: str) -> float:
+    return SequenceMatcher(None, _clean_name(a), _clean_name(b)).ratio()
+
+
+def _build_homologations(
+    pensum: Pensum,
+    historial: Historial,
+    already_matched: set[str],
+) -> dict[str, MateriaCursada]:
+    """Mapea código de materia del pensum → materia del historial homologada.
+
+    Una homologación ocurre cuando el estudiante aprobó una materia con código
+    distinto al del pensum (e.g., venida de otra carrera) pero el nombre es
+    suficientemente similar y los créditos coinciden.
+    """
+    pensum_codigos = {m.codigo for m in pensum.materias}
+    homologations: dict[str, MateriaCursada] = {}
+
+    candidatas = [
+        m
+        for m in historial.materias_cursadas
+        if m.estado == "APROBADA"
+        and m.codigo not in pensum_codigos
+        and m.codigo not in already_matched
+    ]
+
+    for cursada in candidatas:
+        mejor: tuple[float, MateriaPensum] | None = None
+        for materia in pensum.materias:
+            if materia.tipo == "ELECTIVA":
+                continue
+            if materia.codigo in homologations:
+                continue
+            if materia.creditos != cursada.creditos:
+                continue
+            sim = _name_similarity(materia.nombre, cursada.nombre)
+            if sim >= HOMOLOGATION_SIMILARITY_THRESHOLD and (
+                mejor is None or sim > mejor[0]
+            ):
+                mejor = (sim, materia)
+        if mejor:
+            homologations[mejor[1].codigo] = cursada
+
+    return homologations
 
 
 def _slot_name(materia: MateriaPensum) -> str | None:
@@ -170,14 +227,27 @@ def analizar(pensum: Pensum, historial: Historial) -> AnalisisCompleto:
     }
 
     slot_satisfactions = _build_slot_satisfactions(pensum, aprobadas_by_code)
-    # Las electivas que satisfacen un slot también deben considerarse aprobadas
-    # para que el slot quede en verde y los prerrequisitos basados en él funcionen.
-    aprobadas_codes_extendido = set(aprobadas_codes) | set(slot_satisfactions.keys())
+
+    # Detectar homologaciones (materias del historial con código distinto al
+    # del pensum pero nombre similar). Excluimos las que ya satisficieron un slot.
+    historial_ya_usadas = {c.codigo for c in slot_satisfactions.values()}
+    homologations = _build_homologations(pensum, historial, historial_ya_usadas)
+
+    # Las electivas que satisfacen un slot y las homologaciones también deben
+    # considerarse aprobadas para que el slot quede en verde y los prerrequisitos
+    # basados en ellas funcionen.
+    aprobadas_codes_extendido = (
+        set(aprobadas_codes)
+        | set(slot_satisfactions.keys())
+        | set(homologations.keys())
+    )
 
     estados: list[MateriaEstado] = []
     for materia in pensum.materias:
         cursada = aprobadas_by_code.get(materia.codigo)
-        slot_satisfactor = slot_satisfactions.get(materia.codigo)
+        slot_satisfactor = slot_satisfactions.get(materia.codigo) or homologations.get(
+            materia.codigo
+        )
         estados.append(
             _build_materia_estado(
                 materia, cursada, slot_satisfactor, aprobadas_codes_extendido

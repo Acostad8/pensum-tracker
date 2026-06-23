@@ -3,20 +3,20 @@ export default function ProgressBar({ aprobados, totales, porcentaje }) {
   return (
     <div className="card p-6">
       <div className="mb-3 flex items-baseline justify-between">
-        <h3 className="text-sm font-semibold text-slate-700">
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
           Avance hacia la graduación
         </h3>
-        <span className="text-sm font-bold text-ufpso-600">
+        <span className="text-sm font-bold text-ufpso-600 dark:text-ufpso-400">
           {pct.toFixed(1)}%
         </span>
       </div>
-      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
+      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
           className="h-full bg-gradient-to-r from-ufpso-500 to-ufpso-700 transition-all duration-700"
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="mt-2 flex justify-between text-xs text-slate-500">
+      <div className="mt-2 flex justify-between text-xs text-slate-500 dark:text-slate-400">
         <span>{aprobados} créditos aprobados</span>
         <span>{totales} créditos totales</span>
       </div>
