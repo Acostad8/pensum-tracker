@@ -7,18 +7,42 @@
     font-family: "Inter", system-ui, -apple-system, sans-serif;
   }
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+  }
+
+  /* Transición sutil al cambiar de tema para evitar el flash abrupto.
+     Solo afecta colores; layouts/scroll no se animan. */
+  body,
+  body * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+  }
+
+  /* Desactivar transición global en SVGs de ReactFlow para que el grafo se
+     sienta responsivo al arrastre. */
+  .react-flow * {
+    transition-property: none !important;
+  }
+
+  /* Respetar la preferencia de reducir movimiento del SO. */
+  @media (prefers-reduced-motion: reduce) {
+    body,
+    body * {
+      transition: none !important;
+      animation: none !important;
+    }
   }
 }
 
 @layer components {
   .card {
-    @apply rounded-xl bg-white shadow-sm ring-1 ring-slate-200;
+    @apply rounded-xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800;
   }
   .btn-primary {
     @apply rounded-lg bg-ufpso-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ufpso-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ufpso-500 disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-ghost {
-    @apply rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100;
+    @apply rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ufpso-500 dark:text-slate-300 dark:hover:bg-slate-800;
   }
 }

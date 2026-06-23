@@ -7,9 +7,14 @@ from app.models.schemas import AnalisisCompleto
 from app.parsers.historial_parser import parse_historial
 from app.parsers.pensum_parser import parse_pensum
 from app.services.calculator import analizar
+from app.services.pdf_detector import detect_pdf_type
 
 
 router = APIRouter(prefix="/api", tags=["analysis"])
+
+# Límite de tamaño por archivo: 10 MB. Un PDF académico real pesa <2 MB,
+# márgen de seguridad x5 contra abuso/DoS.
+MAX_PDF_SIZE = 10 * 1024 * 1024
 
 
 def _validate_pdf(file: UploadFile) -> None:
@@ -17,6 +22,47 @@ def _validate_pdf(file: UploadFile) -> None:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail=f"El archivo '{file.filename}' no es un PDF.",
+        )
+
+
+def _validate_size(data: bytes, label: str) -> None:
+    if len(data) > MAX_PDF_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=(
+                f"El archivo '{label}' excede el tamaño máximo permitido de "
+                f"{MAX_PDF_SIZE // (1024 * 1024)} MB."
+            ),
+        )
+
+
+def _validate_pdf_types(pensum_bytes: bytes, historial_bytes: bytes) -> None:
+    pensum_type = detect_pdf_type(pensum_bytes)
+    historial_type = detect_pdf_type(historial_bytes)
+
+    if pensum_type == "historial" and historial_type == "pensum":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Parece que invertiste los archivos: subiste el reporte de "
+                "notas como pénsum y viceversa. Intercámbialos."
+            ),
+        )
+    if pensum_type == "historial":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "El archivo subido como pénsum parece ser un reporte de notas. "
+                "Sube el pénsum de tu carrera en esa zona."
+            ),
+        )
+    if historial_type == "pensum":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "El archivo subido como historial parece ser un pénsum. "
+                "Sube el reporte de notas acumuladas en esa zona."
+            ),
         )
 
 
@@ -31,6 +77,11 @@ async def analyze(
 
     pensum_bytes = await pensum.read()
     historial_bytes = await historial.read()
+
+    _validate_size(pensum_bytes, pensum.filename or "pensum")
+    _validate_size(historial_bytes, historial.filename or "historial")
+
+    _validate_pdf_types(pensum_bytes, historial_bytes)
 
     try:
         pensum_data = parse_pensum(pensum_bytes)
