@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl bg-white shadow-sm ring-1 ring-slate-200;
+  }
+  .btn-primary {
+    @apply rounded-lg bg-ufpso-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ufpso-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ufpso-500 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100;
+  }
+}
