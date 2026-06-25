@@ -7,20 +7,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import upload
 
 
-def _build_cors_origins() -> list[str]:
-    """Construye la lista de orígenes permitidos.
+# Regex para localhost en cualquier puerto. Útil en desarrollo cuando Vite
+# elige un puerto distinto al 5173 (5174, 5175, etc. si hay instancias paralelas).
+LOCALHOST_REGEX = r"https?://(localhost|127\.0\.0\.1)(:\d+)?"
 
-    En desarrollo: localhost ports comunes.
-    En producción: agrega los dominios listados en CORS_ORIGINS (separados por coma).
+
+def _build_cors_origins() -> list[str]:
+    """Dominios explícitos permitidos en producción.
+    En dev cualquier localhost funciona vía `allow_origin_regex`.
     """
-    defaults = [
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-    ]
     extra = os.getenv("CORS_ORIGINS", "")
-    production = [o.strip() for o in extra.split(",") if o.strip()]
-    return list({*defaults, *production})
+    return [o.strip() for o in extra.split(",") if o.strip()]
 
 
 app = FastAPI(
@@ -32,6 +29,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_build_cors_origins(),
+    allow_origin_regex=LOCALHOST_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
