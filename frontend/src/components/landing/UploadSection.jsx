@@ -43,7 +43,7 @@ export default function UploadSection({ onAnalysisComplete, onLoadingChange }) {
         </div>
 
         <div className="mt-10 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-ufpso-900/5 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30">
-          <div className="border-b border-slate-200 bg-gradient-to-br from-ufpso-50 via-white to-ufpso-50/30 px-6 py-4 dark:border-slate-800 dark:from-ufpso-950/40 dark:via-slate-900 dark:to-ufpso-950/20">
+          <div className="border-b border-slate-200 bg-slate-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-900/60">
             <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
               <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
               Servidor en línea · listo para analizar
