@@ -20,6 +20,10 @@ from app.models.schemas import (
     InfoEstudiante,
     MateriaCursada,
 )
+from app.services.pdf_detector import (
+    TipoPdfInesperado,
+    detect_pdf_type_from_pdf,
+)
 
 
 DATA_FONTS = {"Helvetica", "Helvetica-Oblique"}
@@ -131,6 +135,9 @@ def parse_historial(source: str | Path | BinaryIO | bytes) -> Historial:
         source = BytesIO(source)
 
     with pdfplumber.open(source) as pdf:
+        tipo = detect_pdf_type_from_pdf(pdf)
+        if tipo == "pensum":
+            raise TipoPdfInesperado(esperado="historial", detectado="pensum")
         lines = _extract_data_lines(pdf)
 
     full_text = "\n".join(lines)

@@ -1,10 +1,17 @@
 """Entry point de la API FastAPI."""
+import logging
 import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import upload
+
+
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s | %(message)s",
+)
 
 
 # Regex para localhost en cualquier puerto. Útil en desarrollo cuando Vite

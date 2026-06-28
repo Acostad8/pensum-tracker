@@ -13,6 +13,10 @@ from typing import BinaryIO
 import pdfplumber
 
 from app.models.schemas import MateriaPensum, Pensum
+from app.services.pdf_detector import (
+    TipoPdfInesperado,
+    detect_pdf_type_from_pdf,
+)
 
 
 HEADER_EXPECTED = ["SEM", "CODIGO", "NOMBRE"]
@@ -88,6 +92,9 @@ def parse_pensum(source: str | Path | BinaryIO | bytes) -> Pensum:
 
     materias: list[MateriaPensum] = []
     with pdfplumber.open(source) as pdf:
+        tipo = detect_pdf_type_from_pdf(pdf)
+        if tipo == "historial":
+            raise TipoPdfInesperado(esperado="pensum", detectado="historial")
         carrera = _extract_carrera(pdf)
         for page in pdf.pages:
             for table in page.extract_tables() or []:
