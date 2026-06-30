@@ -293,7 +293,7 @@ export default function Dashboard({
 
 function Legend() {
   const items = [
-    { color: "bg-state-approved", label: "Aprobada" },
+    { color: "bg-state-approved", label: "Aprobadaa" },
     { color: "bg-state-available", label: "Disponible" },
     { color: "bg-slate-300 dark:bg-slate-600", label: "Bloqueada" },
     { color: "bg-purple-500", label: "Simulada" },
