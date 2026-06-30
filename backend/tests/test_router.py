@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.parsers import historial_parser, pensum_parser
+from app.rate_limit import limiter
 from app.services.pdf_detector import TipoPdfInesperado
 
 from tests.conftest import (
@@ -19,6 +19,14 @@ from tests.conftest import (
     make_materia_pensum,
     make_pensum,
 )
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    """Cada test arranca con el limiter limpio para no contaminar tests vecinos."""
+    limiter.reset()
+    yield
+    limiter.reset()
 
 
 @pytest.fixture
@@ -179,3 +187,46 @@ class TestPensumVacio:
         r = client.post("/api/analyze", files=files)
         assert r.status_code == 422
         assert "historial" in r.json()["detail"].lower()
+
+
+class TestSizeLimit:
+    def test_rechaza_pdf_demasiado_grande(self, client, monkeypatch):
+        # Forzamos un límite minúsculo para no tener que crear un archivo enorme
+        from app.routers import upload
+
+        monkeypatch.setattr(upload, "MAX_PDF_SIZE", 100)
+        # Parser nunca debería invocarse — la validación corta antes
+        monkeypatch.setattr(upload, "parse_pensum", lambda data: pytest.fail(
+            "parse_pensum no debió invocarse"
+        ))
+
+        files = {
+            "pensum": ("p.pdf", b"X" * 500, "application/pdf"),
+            "historial": _pdf_file(),
+        }
+        r = client.post("/api/analyze", files=files)
+        assert r.status_code == 413
+        assert "excede" in r.json()["detail"].lower()
+
+
+class TestRateLimit:
+    def test_devuelve_429_al_exceder_limite(
+        self, client, mock_parsers, monkeypatch
+    ):
+        # Forzamos un límite de 2/minute por test para no esperar 1 minuto real
+        from app.routers import upload as upload_mod
+
+        # Re-aplicar el decorador con el nuevo límite es invasivo; en su lugar
+        # disparamos varias requests con el límite default (10/minute) y
+        # verificamos que la 11.ª falla.
+        files = {
+            "pensum": _pdf_file("p.pdf"),
+            "historial": _pdf_file("h.pdf"),
+        }
+        # Disparamos 10 OK
+        for i in range(10):
+            r = client.post("/api/analyze", files=files)
+            assert r.status_code == 200, f"fallo en request #{i + 1}"
+        # La 11.ª debería ser rechazada
+        r = client.post("/api/analyze", files=files)
+        assert r.status_code == 429

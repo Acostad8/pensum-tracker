@@ -111,6 +111,7 @@ class TestRowToMateria:
         assert m.nombre == "Cálculo Diferencial"
 
     def test_semestre_fuera_de_rango_falla(self):
-        row = ["11", "0193101", "X", "4", "2", "5", "OBLI"]
+        # El rango admitido es 1-14 (cubre tecnologías y medicina).
+        row = ["20", "0193101", "X", "4", "2", "5", "OBLI"]
         with pytest.raises(Exception):
             _row_to_materia(row)

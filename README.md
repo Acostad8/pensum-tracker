@@ -653,6 +653,19 @@ npm run build      # Genera /dist
 npm run preview    # Sirve /dist para validar
 ```
 
+### Tests
+
+```bash
+# Backend (94 tests: calculator, parsers, detector, router, multi-carrera)
+cd backend
+pip install -r requirements-dev.txt
+python -m pytest
+
+# Frontend (53 tests: recommender, simulation, cache, theme, api, hook)
+cd frontend
+npm test
+```
+
 ---
 
 ## 11. Privacidad y seguridad
@@ -666,8 +679,8 @@ npm run preview    # Sirve /dist para validar
 
 ### Recomendaciones para producción
 
-- Añadir rate limiting (ej. `slowapi`) en el endpoint para evitar abuso.
-- Limitar tamaño máximo de upload (FastAPI lo soporta nativamente).
+- **Rate limiting**: ya integrado con `slowapi` (10 req/min por IP por defecto, configurable con `ANALYZE_RATE_LIMIT`). Para múltiples instancias, configurar `RATELIMIT_STORAGE_URI` con Redis.
+- **Tamaño de upload**: límite de 10 MB por archivo, validado en streaming (chunks de 64 KB) para evitar cargar payloads enormes en RAM.
 - Logs estructurados con `structlog` o similar para debug remoto.
 - Sentry o equivalente para tracking de errores.
 
@@ -681,7 +694,6 @@ npm run preview    # Sirve /dist para validar
 | El cálculo del PAPA simulado usa solo notas reales | Si simulas, el promedio mostrado no cambia | Banner avisa explícitamente al usuario |
 | Sin login ni cuentas | No se puede sincronizar entre dispositivos | Cache local de 30 días mitiga parcialmente |
 | El recomendador no considera ofertas reales del semestre | Una materia puede no abrirse ese semestre | Usuario decide al final, es una sugerencia |
-| Sin tests automatizados | Riesgo de regresiones | Pendiente agregar pytest (backend) y vitest (frontend) |
 | Bundle del frontend grande (~860 KB) | First load lento en conexiones lentas | Code splitting de React Flow / jsPDF pendiente |
 
 ---
@@ -690,8 +702,6 @@ npm run preview    # Sirve /dist para validar
 
 ### Corto plazo
 
-- Soporte multi-carrera UFPSO (probar con Civil, Electrónica, etc.)
-- Tests unitarios del parser y calculator
 - Code splitting para reducir bundle inicial
 - Deploy: Vercel (frontend) + Render (backend)
 
