@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
+import ExportCard from "../components/ExportCard";
 import ExportMenu from "../components/ExportMenu";
 import FiltersBar from "../components/FiltersBar";
 import GpaCalculator from "../components/GpaCalculator";
@@ -67,8 +68,8 @@ export default function Dashboard({
   const [search, setSearch] = usePersistentState("pensum-tracker:search", "");
   const [view, setView] = usePersistentState("pensum-tracker:view", "grid");
   const [simulatedCodes, setSimulatedCodes] = useState(() => new Set());
-  const [isExporting, setIsExporting] = useState(false);
-  const exportRef = useRef(null);
+  const [exportingFormat, setExportingFormat] = useState(null);
+  const exportCardRef = useRef(null);
 
   const simulation = useMemo(
     () => buildSimulatedData(data, simulatedCodes),
@@ -153,10 +154,10 @@ export default function Dashboard({
           <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
             <ThemeToggle theme={theme} onToggle={onToggleTheme} />
             <ExportMenu
-              targetRef={exportRef}
+              cardRef={exportCardRef}
               studentName={est.estudiante.nombre}
-              onPrepareExport={() => setIsExporting(true)}
-              onAfterExport={() => setIsExporting(false)}
+              onPrepareExport={(format) => setExportingFormat(format)}
+              onAfterExport={() => setExportingFormat(null)}
             />
             <button type="button" onClick={onReset} className="btn-ghost">
               ← Subir otros PDFs
@@ -183,10 +184,7 @@ export default function Dashboard({
       )}
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        <div
-          ref={exportRef}
-          className="space-y-6 bg-slate-50 p-1 dark:bg-slate-950"
-        >
+        <div className="space-y-6 bg-slate-50 p-1 dark:bg-slate-950">
           {isNewStudent && (
             <WelcomeNotice studentName={est.estudiante.nombre} />
           )}
@@ -265,7 +263,6 @@ export default function Dashboard({
                 <PensumGrid
                   materiasPorSemestre={materiasFiltradas}
                   hasFilters={hasActiveFilters}
-                  forceDesktop={isExporting}
                   simulatedCodes={simulatedCodes}
                   canSimulate
                   onToggleSimulation={toggleSimulation}
@@ -287,6 +284,17 @@ export default function Dashboard({
           </section>
         </div>
       </main>
+
+      {exportingFormat !== null && (
+        <div
+          style={{ position: "fixed", left: "-10000px", top: 0 }}
+          aria-hidden="true"
+        >
+          <div ref={exportCardRef}>
+            <ExportCard stats={est} carrera={pensum_carrera} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

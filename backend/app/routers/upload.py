@@ -1,15 +1,14 @@
 """Router con los endpoints de subida y análisis de PDFs."""
-from __future__ import annotations
-
 import asyncio
 import logging
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
 
 from app.models.schemas import AnalisisCompleto
 from app.parsers.historial_parser import parse_historial
 from app.parsers.pensum_parser import parse_pensum
+from app.rate_limit import ANALYZE_RATE_LIMIT, limiter
 from app.services.calculator import analizar
 from app.services.pdf_detector import TipoPdfInesperado
 from app.services.timing import timed
@@ -21,6 +20,7 @@ logger = logging.getLogger("pensum.upload")
 # Límite de tamaño por archivo: 10 MB. Un PDF académico real pesa <2 MB,
 # márgen de seguridad x5 contra abuso/DoS.
 MAX_PDF_SIZE = 10 * 1024 * 1024
+READ_CHUNK_SIZE = 64 * 1024  # 64 KB por chunk
 
 
 def _validate_pdf(file: UploadFile) -> None:
@@ -31,15 +31,30 @@ def _validate_pdf(file: UploadFile) -> None:
         )
 
 
-def _validate_size(data: bytes, label: str) -> None:
-    if len(data) > MAX_PDF_SIZE:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=(
-                f"El archivo '{label}' excede el tamaño máximo permitido de "
-                f"{MAX_PDF_SIZE // (1024 * 1024)} MB."
-            ),
-        )
+async def _read_with_limit(file: UploadFile, label: str) -> bytes:
+    """Lee el upload en chunks abortando si excede MAX_PDF_SIZE.
+
+    Esto evita cargar 1 GB en RAM si un cliente malicioso envía un payload
+    enorme — la versión anterior leía todo con `await file.read()` y
+    validaba después, demasiado tarde.
+    """
+    chunks: list[bytes] = []
+    total = 0
+    while True:
+        chunk = await file.read(READ_CHUNK_SIZE)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > MAX_PDF_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=(
+                    f"El archivo '{label}' excede el tamaño máximo permitido de "
+                    f"{MAX_PDF_SIZE // (1024 * 1024)} MB."
+                ),
+            )
+        chunks.append(chunk)
+    return b"".join(chunks)
 
 
 def _raise_tipo_error(pensum_err: bool, historial_err: bool) -> None:
@@ -71,7 +86,9 @@ def _raise_tipo_error(pensum_err: bool, historial_err: bool) -> None:
 
 
 @router.post("/analyze", response_model=AnalisisCompleto)
+@limiter.limit(ANALYZE_RATE_LIMIT)
 async def analyze(
+    request: Request,
     pensum: UploadFile = File(..., description="PDF del pénsum de la carrera"),
     historial: UploadFile = File(..., description="PDF del reporte de notas acumuladas"),
 ) -> AnalisisCompleto:
@@ -82,11 +99,9 @@ async def analyze(
     with timed("total") as total:
         with timed("read_uploads"):
             pensum_bytes, historial_bytes = await asyncio.gather(
-                pensum.read(), historial.read()
+                _read_with_limit(pensum, pensum.filename or "pensum"),
+                _read_with_limit(historial, historial.filename or "historial"),
             )
-
-        _validate_size(pensum_bytes, pensum.filename or "pensum")
-        _validate_size(historial_bytes, historial.filename or "historial")
 
         # Parseo en paralelo desde el thread pool: pdfplumber es CPU-bound y
         # síncrono. Sin esto bloqueaba el event loop y los dos PDFs corrían en

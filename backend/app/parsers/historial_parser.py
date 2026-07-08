@@ -122,9 +122,21 @@ def _extract_info_estudiante(full_text: str, carrera: str) -> InfoEstudiante:
     )
 
 
+# Misma lista de familias de programas que el pensum_parser. La duplicación
+# es intencional: cada parser es autocontenido para que ninguno dependa del
+# otro a nivel de imports.
+_CARRERA_KEYWORDS = re.compile(
+    r"ingenier|licenciatura|tecnolog|administra|contadur|"
+    r"derecho|zootecn|medic|comunicaci|trabajo\s+social|"
+    r"arquitect|enferm|odontol|psicol|econom|biolog|"
+    r"matem[áa]tic|f[íi]sic|qu[íi]mic|filosof[íi]a",
+    re.I,
+)
+
+
 def _extract_carrera(lines: list[str]) -> str:
     for line in lines:
-        if re.search(r"ingenier|licenciatura|tecnolog|administra", line, re.I):
+        if _CARRERA_KEYWORDS.search(line):
             return line.strip()
     return "Desconocida"
 

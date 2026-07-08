@@ -46,18 +46,24 @@ function countTransitiveDependents(codigo, dependents) {
 }
 
 function approxNextSemester(allMaterias) {
+  if (allMaterias.length === 0) return 1;
   const aprobadasPorSem = new Map();
+  const totalPorSem = new Map();
+  let maxSem = 1;
   for (const m of allMaterias) {
-    if (m.estado !== "APROBADA") continue;
-    aprobadasPorSem.set(m.semestre, (aprobadasPorSem.get(m.semestre) ?? 0) + 1);
+    totalPorSem.set(m.semestre, (totalPorSem.get(m.semestre) ?? 0) + 1);
+    if (m.semestre > maxSem) maxSem = m.semestre;
+    if (m.estado === "APROBADA") {
+      aprobadasPorSem.set(m.semestre, (aprobadasPorSem.get(m.semestre) ?? 0) + 1);
+    }
   }
   // El próximo semestre del estudiante = el menor sem que aún tiene pendientes
-  for (let sem = 1; sem <= 10; sem++) {
-    const total = allMaterias.filter((m) => m.semestre === sem).length;
+  for (let sem = 1; sem <= maxSem; sem++) {
+    const total = totalPorSem.get(sem) ?? 0;
     const aprobadas = aprobadasPorSem.get(sem) ?? 0;
     if (aprobadas < total) return sem;
   }
-  return 10;
+  return maxSem;
 }
 
 function scoreMateria(m, dependents, nextSem) {

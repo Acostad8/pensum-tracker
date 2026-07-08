@@ -14,7 +14,7 @@ function waitForRender() {
 }
 
 export default function ExportMenu({
-  targetRef,
+  cardRef,
   studentName,
   onPrepareExport,
   onAfterExport,
@@ -34,16 +34,16 @@ export default function ExportMenu({
   }, []);
 
   async function handleExport(format) {
-    if (!targetRef.current) return;
     setBusy(format);
     setOpen(false);
     try {
-      onPrepareExport?.();
+      onPrepareExport?.(format);
       await waitForRender();
+      if (!cardRef.current) throw new Error("Export card not mounted");
       if (format === "png") {
-        await exportAsPng(targetRef.current, studentName);
+        await exportAsPng(cardRef.current, studentName);
       } else {
-        await exportAsPdf(targetRef.current, studentName);
+        await exportAsPdf(cardRef.current, studentName);
       }
     } catch (err) {
       console.error("Export failed:", err);

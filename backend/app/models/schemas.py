@@ -16,7 +16,9 @@ class MateriaPensum(BaseModel):
     creditos: int
     ht: int = Field(description="Horas teóricas")
     hp: int = Field(description="Horas prácticas")
-    semestre: int = Field(ge=1, le=10)
+    # Rango flexible: tecnologías (~6), pregrados (~10), medicina (~12).
+    # Margen hasta 14 cubre todos los programas conocidos de UFPSO.
+    semestre: int = Field(ge=1, le=14)
     tipo: TipoMateria
     prerrequisitos: list[str] = Field(default_factory=list)
     simultaneas: list[str] = Field(default_factory=list)

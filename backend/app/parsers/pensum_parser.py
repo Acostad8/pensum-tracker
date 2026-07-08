@@ -69,16 +69,32 @@ def _row_to_materia(row: list) -> MateriaPensum:
     )
 
 
+# Familias de programas ofrecidos por UFPSO. Lista no exhaustiva pero
+# suficiente para detectar el nombre de carrera en la primera página del PDF.
+CARRERA_KEYWORDS = re.compile(
+    r"ingenier|licenciatura|tecnolog|administra|contadur|"
+    r"derecho|zootecn|medic|comunicaci|trabajo\s+social|"
+    r"arquitect|enferm|odontol|psicol|econom|biolog|"
+    r"matem[áa]tic|f[íi]sic|qu[íi]mic|filosof[íi]a",
+    re.I,
+)
+
+
 def _extract_carrera(pdf: pdfplumber.PDF) -> str:
-    """Extrae el nombre de la carrera de la primera página."""
+    """Extrae el nombre de la carrera de la primera página.
+
+    Busca la primera línea que coincida con una palabra clave conocida de
+    nombre de programa, ignorando ruido como 'Pensum' y 'Fecha'.
+    """
     if not pdf.pages:
         return "Desconocida"
     text = pdf.pages[0].extract_text() or ""
     for line in text.splitlines():
         line = line.strip()
-        if line and "pensum" not in line.lower() and "fecha" not in line.lower():
-            if re.search(r"ingenier|licenciatura|tecnolog|administra", line, re.I):
-                return line
+        if not line or "pensum" in line.lower() or "fecha" in line.lower():
+            continue
+        if CARRERA_KEYWORDS.search(line):
+            return line
     return "Desconocida"
 
 

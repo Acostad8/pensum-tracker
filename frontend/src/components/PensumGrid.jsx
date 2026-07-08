@@ -4,7 +4,6 @@ import SubjectCard from "./SubjectCard";
 export default function PensumGrid({
   materiasPorSemestre,
   hasFilters = false,
-  forceDesktop = false,
   simulatedCodes,
   canSimulate = false,
   onToggleSimulation,
@@ -31,17 +30,6 @@ export default function PensumGrid({
   }
 
   const sharedProps = { simulatedCodes, canSimulate, onToggleSimulation };
-
-  if (forceDesktop) {
-    return (
-      <DesktopGrid
-        semestres={visibles}
-        materiasPorSemestre={materiasPorSemestre}
-        alwaysVisible
-        {...sharedProps}
-      />
-    );
-  }
 
   return (
     <>
@@ -75,15 +63,12 @@ function renderSubject(m, { simulatedCodes, canSimulate, onToggleSimulation }) {
 function DesktopGrid({
   semestres,
   materiasPorSemestre,
-  alwaysVisible = false,
   simulatedCodes,
   canSimulate,
   onToggleSimulation,
 }) {
   return (
-    <div
-      className={`overflow-x-auto pb-4 ${alwaysVisible ? "" : "hidden md:block"}`}
-    >
+    <div className="hidden overflow-x-auto pb-4 md:block">
       <div className="inline-flex min-w-full gap-3">
         {semestres.map((sem) => {
           const materias = materiasPorSemestre[sem];
