@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
+import ExportCard from "../components/ExportCard";
 import ExportMenu from "../components/ExportMenu";
 import FiltersBar from "../components/FiltersBar";
 import GpaCalculator from "../components/GpaCalculator";
@@ -67,8 +68,9 @@ export default function Dashboard({
   const [search, setSearch] = usePersistentState("pensum-tracker:search", "");
   const [view, setView] = usePersistentState("pensum-tracker:view", "grid");
   const [simulatedCodes, setSimulatedCodes] = useState(() => new Set());
-  const [isExporting, setIsExporting] = useState(false);
+  const [exportingFormat, setExportingFormat] = useState(null);
   const exportRef = useRef(null);
+  const exportCardRef = useRef(null);
 
   const simulation = useMemo(
     () => buildSimulatedData(data, simulatedCodes),
@@ -154,9 +156,10 @@ export default function Dashboard({
             <ThemeToggle theme={theme} onToggle={onToggleTheme} />
             <ExportMenu
               targetRef={exportRef}
+              cardRef={exportCardRef}
               studentName={est.estudiante.nombre}
-              onPrepareExport={() => setIsExporting(true)}
-              onAfterExport={() => setIsExporting(false)}
+              onPrepareExport={(format) => setExportingFormat(format)}
+              onAfterExport={() => setExportingFormat(null)}
             />
             <button type="button" onClick={onReset} className="btn-ghost">
               ← Subir otros PDFs
@@ -265,7 +268,7 @@ export default function Dashboard({
                 <PensumGrid
                   materiasPorSemestre={materiasFiltradas}
                   hasFilters={hasActiveFilters}
-                  forceDesktop={isExporting}
+                  forceDesktop={exportingFormat === "pdf"}
                   simulatedCodes={simulatedCodes}
                   canSimulate
                   onToggleSimulation={toggleSimulation}
@@ -287,6 +290,17 @@ export default function Dashboard({
           </section>
         </div>
       </main>
+
+      {exportingFormat === "png" && (
+        <div
+          style={{ position: "fixed", left: "-10000px", top: 0 }}
+          aria-hidden="true"
+        >
+          <div ref={exportCardRef}>
+            <ExportCard stats={est} carrera={pensum_carrera} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
