@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#b91c1c"/>
+  <!-- graduation cap -->
+  <path d="M16 8L5 12l11 4 8-2.9V19h1.6v-5.6L27 12z" fill="white"/>
+  <path d="M10 15.5v3.2c0 1.4 2.7 2.8 6 2.8s6-1.4 6-2.8v-3.2l-6 2.2z" fill="white" opacity=".9"/>
+  <!-- progress arc -->
+  <path d="M8 25a8 8 0 0 1 16 0" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity=".45"/>
+  <path d="M8 25a8 8 0 0 1 11 -7.4" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
