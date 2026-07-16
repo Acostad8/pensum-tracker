@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ExportCard from "../components/ExportCard";
 import ExportMenu from "../components/ExportMenu";
 import FiltersBar from "../components/FiltersBar";
@@ -125,6 +125,10 @@ export default function Dashboard({
     }
     return out;
   }, [materias_por_semestre, filter, search]);
+
+  useEffect(() => {
+    document.title = `${est.estudiante.nombre} — Pensum Tracker`;
+  }, [est.estudiante.nombre]);
 
   const hasActiveFilters = filter !== "all" || search.length > 0;
   const isNewStudent =
@@ -301,7 +305,7 @@ export default function Dashboard({
 
 function Legend() {
   const items = [
-    { color: "bg-state-approved", label: "Aprobadaa" },
+    { color: "bg-state-approved", label: "Aprobada" },
     { color: "bg-state-available", label: "Disponible" },
     { color: "bg-slate-300 dark:bg-slate-600", label: "Bloqueada" },
     { color: "bg-purple-500", label: "Simulada" },

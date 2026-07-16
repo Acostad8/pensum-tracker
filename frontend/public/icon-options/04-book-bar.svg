@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#b91c1c"/>
+  <!-- open book -->
+  <path d="M5 10c3-1.2 6-1.2 11 .8 5-2 8-2 11-.8v13.4c-3-1.2-6-1.2-11 .8-5-2-8-2-11-.8V10z" fill="white"/>
+  <path d="M16 10.8V25" stroke="#b91c1c" stroke-width="1.1"/>
+  <!-- progress bars overlay -->
+  <rect x="7"  y="13.5" width="7" height="1.2" rx=".6" fill="#b91c1c" opacity=".6"/>
+  <rect x="7"  y="16"   width="5" height="1.2" rx=".6" fill="#b91c1c" opacity=".6"/>
+  <rect x="18" y="13.5" width="7" height="1.2" rx=".6" fill="#b91c1c" opacity=".6"/>
+  <rect x="18" y="16"   width="4" height="1.2" rx=".6" fill="#b91c1c" opacity=".6"/>
+</svg>
