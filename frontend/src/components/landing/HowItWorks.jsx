@@ -72,10 +72,10 @@ export default function HowItWorks() {
 
               {/* Connector */}
               {idx < STEPS.length - 1 && (
-                <div className="absolute -right-4 top-1/2 hidden lg:block">
+                <div className="absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 translate-x-1/2 rounded-full bg-white p-1.5 shadow-sm ring-1 ring-slate-200 lg:block dark:bg-slate-900 dark:ring-slate-700">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-slate-300 dark:text-slate-700"
+                    className="h-5 w-5 text-slate-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={2}

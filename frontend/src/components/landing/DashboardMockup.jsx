@@ -4,7 +4,7 @@
  */
 export default function DashboardMockup() {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/40">
+    <div className="relative overflow-visible rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/40">
       {/* Browser chrome */}
       <div className="flex items-center gap-1.5 border-b border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-800/50">
         <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
@@ -59,7 +59,7 @@ export default function DashboardMockup() {
       </div>
 
       {/* Floating tags */}
-      <div className="absolute -right-3 -top-3 hidden rotate-3 rounded-lg bg-gradient-to-br from-ufpso-600 to-ufpso-700 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg sm:block animate-float">
+      <div className="z-50 absolute -right-3 -top-3 hidden rotate-3 rounded-lg bg-gradient-to-br from-ufpso-600 to-ufpso-700 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg sm:block animate-float">
         Tiempo real
       </div>
       <div className="absolute -bottom-3 -left-3 hidden -rotate-3 rounded-lg bg-white px-3 py-1.5 text-[10px] font-bold text-slate-700 shadow-lg ring-1 ring-slate-200 sm:block animate-float dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700" style={{ animationDelay: "1.5s" }}>
